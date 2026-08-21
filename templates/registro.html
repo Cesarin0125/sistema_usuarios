@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="py-2">
+    <!-- Encabezado -->
+    <div class="mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-gradient text-white rounded-circle fs-3 fw-bold mb-3" style="width: 50px; height: 50px;">
+            ♔
+        </div>
+        <h2 class="fw-bold text-dark m-0">Crear Cuenta</h2>
+        <p class="text-muted small">Únete para empezar a gestionar tu tablero</p>
+    </div>
+
+    <!-- Formulario limpio -->
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label fw-semibold text-secondary small">Nombre Completo</label>
+            <input type="text" name="nombre" class="form-control form-control-lg border-0 bg-light fs-6" placeholder="Tu nombre" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold text-secondary small">Correo Electrónico</label>
+            <input type="email" name="email" class="form-control form-control-lg border-0 bg-light fs-6" placeholder="nombre@ejemplo.com" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold text-secondary small">Contraseña</label>
+            <input type="password" name="password" class="form-control form-control-lg border-0 bg-light fs-6" placeholder="••••••••" required>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label fw-semibold text-secondary small">Rol</label>
+            <select name="rol" class="form-select form-select-lg border-0 bg-light fs-6 text-secondary">
+                <option value="cliente">Cliente</option>
+                <option value="admin">Administrador</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm" style="border-radius: 12px; background-color: #3b82f6; border: none;">
+            Registrarse
+        </button>
+    </form>
+
+    <div class="mt-4 text-center">
+        <span class="text-muted small">¿Ya tienes cuenta?</span>
+        <a href="{{ url_for('login') }}" class="text-primary fw-semibold small text-decoration-none ms-1">Inicia sesión</a>
+    </div>
+</div>
+{% endblock %}

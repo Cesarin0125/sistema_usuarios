@@ -1,0 +1,473 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Elemento oculto para pasar datos de Jinja a JavaScript de forma limpia -->
+<div id="chart-data" 
+     data-admin="{{ usuarios|selectattr('3', 'equalto', 'admin')|list|length }}" 
+     data-cliente="{{ usuarios|selectattr('3', 'equalto', 'cliente')|list|length }}" 
+     style="display: none;">
+</div>
+
+<div class="dashboard-wrapper w-100">
+
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold mb-1 text-dark">
+                Hola, {{ session['nombre'] }}
+                {% if session['rol'] == 'admin' %}
+                    <span class="badge rounded-pill ms-2 px-3 py-2 badge-admin">ADMIN</span>
+                {% else %}
+                    <span class="badge rounded-pill ms-2 px-3 py-2 badge-cliente">CLIENTE</span>
+                {% endif %}
+            </h2>
+            <p class="text-muted mb-0">Bienvenido a tu panel de control</p>
+        </div>
+
+        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger rounded-pill px-4">
+            Cerrar Sesión
+        </a>
+    </div>
+
+    {% if session['rol'] == 'admin' %}
+
+    <!-- ==================== VISTA DE ADMINISTRADOR ==================== -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="stat-label">Total Usuarios</p>
+                        <h3 class="stat-number">{{ usuarios|length }}</h3>
+                    </div>
+                    <div class="stat-icon icon-pink fs-4">👥</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="stat-label">Administradores</p>
+                        <h3 class="stat-number">{{ usuarios|selectattr('3', 'equalto', 'admin')|list|length }}</h3>
+                    </div>
+                    <div class="stat-icon icon-yellow fs-4">🛡️</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="stat-label">Clientes</p>
+                        <h3 class="stat-number">{{ usuarios|selectattr('3', 'equalto', 'cliente')|list|length }}</h3>
+                    </div>
+                    <div class="stat-icon icon-indigo fs-4">♟️</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="stat-label">Estado del Sistema</p>
+                        <h3 class="stat-number text-success">Activo</h3>
+                    </div>
+                    <div class="stat-icon icon-green fs-4">✅</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico + Tabla Admin -->
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="content-card h-100">
+                <h5 class="card-title mb-3">Distribución de Roles</h5>
+                <div class="chart-container">
+                    <canvas id="rolesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="content-card h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">Usuarios del Sistema</h5>
+                    <span class="badge bg-light text-dark border rounded-pill px-3 py-2">
+                        {{ usuarios|length }} registrados
+                    </span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 custom-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in usuarios %}
+                            <tr style="cursor: pointer;" onclick="verUsuario('{{ u[0] }}', '{{ u[1] }}', '{{ u[2] }}', '{{ u[3] }}')">
+                                <td class="fw-semibold">{{ u[0] }}</td>
+                                <td>{{ u[1] }}</td>
+                                <td class="text-muted">{{ u[2] }}</td>
+                                <td>
+                                    {% if u[3] == 'admin' %}
+                                        <span class="badge rounded-pill px-3 py-1 badge-table-admin">Admin</span>
+                                    {% else %}
+                                        <span class="badge rounded-pill px-3 py-1 badge-table-cliente">Cliente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">No hay usuarios registrados</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+
+    <!-- ==================== VISTA DE CLIENTE COMPLETA ==================== -->
+    
+    <!-- Banner de Bienvenida -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="content-card p-4 client-banner d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h4 class="fw-bold mb-1 text-indigo-dark">¡Hola de nuevo, {{ session['nombre'] }}! ♟️</h4>
+                    <p class="mb-0 text-muted">Tu cuenta está activa y lista. Aquí tienes un resumen de tu actividad en el tablero.</p>
+                </div>
+                <button class="btn btn-primary rounded-pill px-4 py-2 fw-semibold" style="background-color: #818cf8; border: none;">
+                    + Nueva Partida
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Métricas Rápidas del Cliente -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="stat-label">Partidas Jugadas</p>
+                        <h3 class="stat-number">24</h3>
+                    </div>
+                    <div class="stat-icon icon-indigo fs-4">♟️</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="stat-label">Victoria %</p>
+                        <h3 class="stat-number text-success">68%</h3>
+                    </div>
+                    <div class="stat-icon icon-green fs-4">🏆</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="stat-label">Puntaje / ELO</p>
+                        <h3 class="stat-number">1,250</h3>
+                    </div>
+                    <div class="stat-icon icon-yellow fs-4">⭐</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="stat-label">Racha Actual</p>
+                        <h3 class="stat-number">3</h3>
+                    </div>
+                    <div class="stat-icon icon-pink fs-4">🔥</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Perfil + Actividad Reciente -->
+    <div class="row g-4">
+        <!-- Tarjeta de Perfil -->
+        <div class="col-lg-4">
+            <div class="content-card text-center p-4 h-100 d-flex flex-column justify-content-center align-items-center">
+                <div class="mb-3 position-relative">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle text-white fw-bold fs-2 shadow-sm" 
+                         style="width: 90px; height: 90px; background: linear-gradient(135deg, #c7d2fe, #818cf8);">
+                        {{ session['nombre'][0] | upper }}
+                    </div>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">{{ session['nombre'] }}</h5>
+                <span class="badge badge-cliente mb-3">Jugador Activo</span>
+                
+                <hr class="w-100 my-3 opacity-10">
+
+                <div class="w-100 text-start">
+                    <div class="d-flex justify-content-between text-muted small mb-2">
+                        <span>Estado de cuenta</span>
+                        <span class="text-success fw-semibold">Activa</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small">
+                        <span>Último acceso</span>
+                        <span class="fw-semibold text-dark">Hoy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Actividad Reciente -->
+        <div class="col-lg-8">
+            <div class="content-card h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">Partidas Recientes</h5>
+                    <a href="#" class="text-primary small text-decoration-none fw-semibold">Ver historial</a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 custom-table">
+                        <thead>
+                            <tr>
+                                <th>Oponente</th>
+                                <th>Resultado</th>
+                                <th>Movimientos</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="fw-semibold">Oponente_Alex</span></td>
+                                <td><span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">Victoria</span></td>
+                                <td>32</td>
+                                <td class="text-muted small">Hace 2 horas</td>
+                            </tr>
+                            <tr>
+                                <td><span class="fw-semibold">Master_Chess</span></td>
+                                <td><span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1">Derrota</span></td>
+                                <td>45</td>
+                                <td class="text-muted small">Ayer</td>
+                            </tr>
+                            <tr>
+                                <td><span class="fw-semibold">Jugador_01</span></td>
+                                <td><span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">Victoria</span></td>
+                                <td>18</td>
+                                <td class="text-muted small">Hace 3 días</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+</div>
+
+<!-- Estilos CSS Limpios -->
+<style>
+    .dashboard-wrapper {
+        width: 100%;
+    }
+
+    .stat-card, .content-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(8px);
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        transition: all 0.2s ease;
+    }
+
+    .stat-card:hover, .content-card:hover {
+        box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 0.35rem;
+        font-weight: 500;
+    }
+
+    .stat-number {
+        font-size: 1.85rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Colores */
+    .icon-pink { background: #fbcfe8; }
+    .icon-yellow { background: #fef08a; }
+    .icon-indigo { background: #c7d2fe; }
+    .icon-green { background: #bbf7d0; }
+
+    /* Badges */
+    .badge-admin { background-color: #fbcfe8; color: #9d174d; font-weight: 600; font-size: 0.75rem; }
+    .badge-cliente { background-color: #c7d2fe; color: #3730a3; font-weight: 600; font-size: 0.75rem; }
+    .badge-table-admin { background: #fef08a; color: #854d0e; }
+    .badge-table-cliente { background: #c7d2fe; color: #3730a3; }
+
+    /* Estilos Cliente */
+    .client-banner { background: linear-gradient(135deg, #f0fdf4, #e0e7ff); border: none; }
+    .text-indigo-dark { color: #1e1b4b; }
+
+    .card-title {
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 1.1rem;
+    }
+
+    .chart-container {
+        height: 250px;
+        position: relative;
+    }
+
+    .custom-table thead th {
+        background: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 0.85rem 1rem;
+    }
+
+    .custom-table tbody td {
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+    }
+
+    .custom-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+</style>
+
+<!-- Ajuste de pantalla completa -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const formSection = document.querySelector('.form-section');
+        const brandSection = document.querySelector('.brand-section');
+        const formContainer = document.querySelector('.form-container');
+
+        if (formSection && brandSection) {
+            formSection.style.width = '100%';
+            formSection.style.maxWidth = '100%';
+            formSection.style.padding = '30px 50px';
+            brandSection.style.display = 'none';
+        }
+        if (formContainer) {
+            formContainer.style.maxWidth = '100%';
+        }
+    });
+</script>
+
+{% if session['rol'] == 'admin' %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const chartDataEl = document.getElementById('chart-data');
+        const adminCount = parseInt(chartDataEl.getAttribute('data-admin'), 10) || 0;
+        const clienteCount = parseInt(chartDataEl.getAttribute('data-cliente'), 10) || 0;
+
+        const ctx = document.getElementById('rolesChart').getContext('2d');
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Administradores', 'Clientes'],
+                datasets: [{
+                    data: [adminCount, clienteCount],
+                    backgroundColor: ['#facc15', '#818cf8'],
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 18,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: { size: 13 }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    });
+    function verUsuario(id, nombre, email, rol) {
+    const esAdmin = rol === 'admin';
+    const bgBadge = esAdmin ? '#fef08a' : '#c7d2fe';
+    const colorBadge = esAdmin ? '#854d0e' : '#3730a3';
+
+    Swal.fire({
+        title: `<span style="color: #0f172a; font-weight: 700;">Detalles del Usuario</span>`,
+        html: `
+            <div style="text-align: left; background: #f8fafc; padding: 1.25rem; border-radius: 15px; border: 1px solid #e2e8f0;">
+                <p style="margin-bottom: 0.5rem; color: #64748b; font-size: 0.9rem;">
+                    <strong style="color: #334155;">ID:</strong> #${id}
+                </p>
+                <p style="margin-bottom: 0.5rem; color: #64748b; font-size: 0.9rem;">
+                    <strong style="color: #334155;">Nombre:</strong> ${nombre}
+                </p>
+                <p style="margin-bottom: 0.5rem; color: #64748b; font-size: 0.9rem;">
+                    <strong style="color: #334155;">Email:</strong> ${email}
+                </p>
+                <div style="margin-top: 0.75rem;">
+                    <strong style="color: #334155; font-size: 0.9rem;">Rol:</strong> 
+                    <span style="background-color: ${bgBadge}; color: ${colorBadge}; padding: 4px 14px; border-radius: 20px; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-left: 6px;">
+                        ${rol}
+                    </span>
+                </div>
+            </div>
+        `,
+        icon: 'info',
+        iconColor: '#818cf8',
+        confirmButtonText: 'Cerrar',
+        confirmButtonColor: '#818cf8',
+        customClass: {
+            popup: 'rounded-4'
+        }
+    });
+}
+</script>
+{% endif %}
+
+{% endblock %}

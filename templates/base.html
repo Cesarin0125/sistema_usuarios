@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Usuarios - Wizard's Chess</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #ffffff;
+            color: #1a1d20;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Layout dividido estilo Split Screen como la imagen */
+        .page-wrapper {
+            display: flex;
+            min-height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /* Columna izquierda: Formulario */
+        .form-section {
+            width: 45%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            z-index: 2;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Columna derecha: Título y decoraciones */
+        .brand-section {
+            width: 55%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-title {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: #0f172a;
+            max-width: 450px;
+            z-index: 3;
+        }
+
+        /* Fichas de Ajedrez recortadas con máscaras CSS y colores pasteles */
+        .chess-shape {
+            position: absolute;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            z-index: 1;
+            animation: float 6s ease-in-out infinite alternate;
+        }
+
+        /* Torre recortada (Superior Derecha) */
+        .shape-rook {
+            top: -40px;
+            right: 80px;
+            width: 220px;
+            height: 220px;
+            background: linear-gradient(135deg, #fbcfe8, #f472b6); /* Rosa pastel */
+            border-radius: 50%;
+            font-size: 11rem;
+            color: white;
+            clip-path: polygon(0 0, 100% 0, 100% 70%, 0 70%); /* Recorte estilo geométrico */
+        }
+
+        /* Caballo (Decoración central / derecha) */
+        .shape-knight {
+            bottom: 60px;
+            right: -30px;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #c7d2fe, #818cf8); /* Azul/Púrpura pastel */
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+            font-size: 9rem;
+            color: white;
+            transform: rotate(-15deg);
+            animation-delay: -2s;
+        }
+
+        /* Peón/Reina recortado (Inferior centro) */
+        .shape-pawn {
+            bottom: -50px;
+            left: 20%;
+            width: 180px;
+            height: 180px;
+            background: linear-gradient(135deg, #ffedd5, #fb923c); /* Naranja/Coral pastel */
+            border-radius: 50%;
+            font-size: 8rem;
+            color: white;
+            clip-path: polygon(0 30%, 100% 30%, 100% 100%, 0 100%);
+            animation-delay: -4s;
+        }
+
+        /* Alfil / Triángulo orgánico (Lado del Formulario) */
+        .shape-bishop {
+            bottom: 40px;
+            left: -40px;
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(135deg, #fecdd3, #f43f5e); /* Rojo/Rosa pastel */
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            font-size: 7rem;
+            color: white;
+            opacity: 0.85;
+        }
+
+        /* Animación suave flotante */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-18px) rotate(5deg); }
+        }
+
+        /* Adaptabilidad para pantallas móviles */
+        @media (max-width: 992px) {
+            .page-wrapper { flex-direction: column; }
+            .form-section, .brand-section { width: 100%; padding: 30px; }
+            .brand-section { display: none; } /* Oculta el lado decorativo en móviles */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-wrapper">
+        <!-- Columna Izquierda: Formulario (Login / Registro / Dashboard) -->
+        <div class="form-section">
+            <div class="form-container">
+                
+                <!-- Mensajes de Alerta de Flask -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Bloque donde carga login.html o registro.html -->
+                {% block content %}{% endblock %}
+
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Texto Promocional y Fichas de Ajedrez Recortadas -->
+        <div class="brand-section">
+            <h1 class="brand-title">Cambiando la forma en que gestionas tu tablero.</h1>
+
+            <!-- Fichas recortadas estilo formas geométricas -->
+            <div class="chess-shape shape-rook">♜</div>
+            <div class="chess-shape shape-knight">♞</div>
+            <div class="chess-shape shape-pawn">♟</div>
+            <div class="chess-shape shape-bishop">♝</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>
