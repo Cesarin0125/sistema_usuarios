@@ -27,5 +27,5 @@ Un panel de administración y control de usuarios desarrollado con **Python (Fla
 
 1. **Clonar el repositorio:**
    ```bash
-   git clone [https://github.com/TU_USUARIO/sistema_usuarios.git](https://github.com/Cesarin0125/sistema_usuarios.git)
+   git clone [https://github.com/Cesarin0125/sistema_usuarios.git](https://github.com/Cesarin0125/sistema_usuarios.git)
    cd sistema_usuarios
